@@ -38,17 +38,18 @@ class SearchEngine:
         self._stop_words = set(text.split())
 
     def add_document(self, document_id: str, document: str):
-        document = document.lower()
+        document = document.lower().replace('\r\n', ' ').replace('\n', ' ')
         words = self.__split_into_words_no_stop(document)
-        inv_word_count = 1 / len(words)
-        for word in words:
-            if word not in self._word_to_document_freqs.keys():
-                self._word_to_document_freqs[word] = dict()
-            if document_id in self._word_to_document_freqs[word].keys():
-                self._word_to_document_freqs[word][document_id] += inv_word_count
-            else:
-                self._word_to_document_freqs[word][document_id] = inv_word_count
-        self._documents.add(document_id)
+        if len(words) > 0:
+            inv_word_count = 1 / len(words)
+            for word in words:
+                if word not in self._word_to_document_freqs.keys():
+                    self._word_to_document_freqs[word] = dict()
+                if document_id in self._word_to_document_freqs[word].keys():
+                    self._word_to_document_freqs[word][document_id] += inv_word_count
+                else:
+                    self._word_to_document_freqs[word][document_id] = inv_word_count
+            self._documents.add(document_id)
 
     def find_top_documents(self, raw_query: str):
         raw_query = raw_query.lower()
@@ -87,9 +88,11 @@ class SearchEngine:
 
     def __parse_query_word(self, text: str) -> QueryWord:
         is_minus = False
+        """
         if text[0] == '-':
             is_minus = True
             text = text[1:]
+        """
         return QueryWord(text, is_minus, self.__is_stop_word(text))
 
     def __parse_query(self, text: str) -> Query:
@@ -153,7 +156,9 @@ def search_documents(documents: list, query: str, max_result_document_count: int
     search_engine = SearchEngine(max_result_document_count)
     for document in documents:
         search_engine.add_document(str(document.id), document.content)
+    print(query)
     for document in search_engine.find_top_documents(query):
+        print_document(document)
         result.append(document.id)
     del search_engine
     return result

@@ -21,12 +21,17 @@ dp = Dispatcher(bot)
 async def admin_update(message: types.Message):
     user_id = message.from_user.id
     if str(user_id) in admin_tokens:
-        docs = parse_matlab()
-        if len(docs) == 0:
-            truncate_documents()
-            for url, content in docs.items():
-                add_document(content, url)
-            await message.answer('qq')
+        try:
+            docs = parse_matlab(2021)
+            if len(docs) == 0:
+                await message.answer(f'Не удалось обновить документы.')
+            else:
+                truncate_documents()
+                for url, content in docs.items():
+                    add_document(content, url)
+                await message.answer(f'База обновлена. Добавлено {len(docs)} документов.')
+        except Exception as ex:
+            print(f'Ошибка:\n{ex}')
 
 
 @dp.message_handler()
@@ -34,10 +39,20 @@ async def echo(message: types.Message):
     query = message.text
     r = get_documents()
     if r.success:
-        result = search_documents(documents=r.data, query=query, max_result_document_count=-1)
-        await message.answer('\n'.join(result))
+        docs = r.data
+        result = search_documents(documents=docs, query=query, max_result_document_count=10)
+        if len(result) == 0:
+            await message.answer(f'По запросу ничего не найдено.')
+        else:
+            msg = f'По вашему запросу найдено {len(result)} работ:\n'
+            for doc_id in result:
+                for doc in docs:
+                    if str(doc.id) == doc_id:
+                        msg += f'[{doc.url.split("/")[-1]}]({doc.url})\n'
+                        break
+            await message.answer(msg, parse_mode=types.ParseMode.MARKDOWN)
     else:
-        await message.answer('гг вп')
+        await message.answer('Не удалось получить данные из базы данных.')
 
 
 if __name__ == '__main__':
