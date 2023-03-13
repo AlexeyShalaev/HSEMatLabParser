@@ -22,7 +22,7 @@ async def admin_update(message: types.Message):
     user_id = message.from_user.id
     if str(user_id) in admin_tokens:
         try:
-            docs = parse_matlab(2021)
+            docs = parse_matlab()
             if len(docs) == 0:
                 await message.answer(f'Не удалось обновить документы.')
             else:
