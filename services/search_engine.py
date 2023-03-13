@@ -152,7 +152,7 @@ def search_documents(documents: list, query: str, max_result_document_count: int
         max_result_document_count = len(documents)
     search_engine = SearchEngine(max_result_document_count)
     for document in documents:
-        search_engine.add_document(document['id'], document['data'])
+        search_engine.add_document(str(document.id), document.content)
     for document in search_engine.find_top_documents(query):
         result.append(document.id)
     del search_engine
