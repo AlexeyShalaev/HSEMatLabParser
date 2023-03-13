@@ -5,7 +5,7 @@ import requests
 from bs4 import BeautifulSoup as bs
 
 
-def get_data(link, year) -> list[tuple[str, str]]:
+def get_data(link, year):
     r = requests.get(f'{link}/result{year}-{year + 1}.php')
     res = []
     if r.ok:
@@ -16,7 +16,7 @@ def get_data(link, year) -> list[tuple[str, str]]:
         for href in hrefs:
             hr = href['href']
             index = hr.find('/')
-            url = f"{link}/{hr[index+1:]}"
+            url = f"{link}/{hr[index + 1:]}"
             resp = requests.get(url)
             if resp.ok:
                 resp.encoding = 'utf-8'
@@ -25,7 +25,7 @@ def get_data(link, year) -> list[tuple[str, str]]:
     return res
 
 
-def parse_matlab(start_year=2014) -> dict:
+def parse_matlab(start_year=2014):
     now = datetime.now()
     address = 'https://serjmak.com/2students'
     courses = ['matlaba', 'matlabma']
