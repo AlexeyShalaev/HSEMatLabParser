@@ -39,3 +39,20 @@ def parse_matlab(start_year=2014):
             for url, content in data:
                 res[url] = content
     return res
+
+
+def get_content(url):
+    resp = requests.get(url)
+    if resp.ok:
+        resp.encoding = 'utf-8'
+        return resp.text
+    return ''
+
+
+def parse_text(url, encoding):
+    r = requests.get(url)
+    if r.ok:
+        r.encoding = encoding
+        return r.text
+    else:
+        return 'Не удалось получить текст. Проверьте ссылку.'

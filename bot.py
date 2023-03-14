@@ -3,7 +3,7 @@ import logging
 from aiogram import Bot, Dispatcher, executor, types
 from config import load_config
 from services.MongoDB.documents import get_documents, add_document, truncate_documents
-from services.parser import parse_matlab
+from services.parser import parse_matlab, parse_text, get_content
 from services.search_engine import search_documents
 
 # Configure logging
@@ -15,6 +15,13 @@ admin_tokens = config.tg_bot.admins
 # Initialize bot and dispatcher
 bot = Bot(token=config.tg_bot.token)
 dp = Dispatcher(bot)
+
+
+@dp.message_handler(commands=['start', 'help'])
+async def decode_text(message: types.Message):
+    msg = f'/utf URL - перевод текста в UTF-8\n' \
+          f'TEXT - поиск работ по запросу'
+    await message.answer(msg)
 
 
 @dp.message_handler(commands=['update'])
@@ -32,6 +39,39 @@ async def admin_update(message: types.Message):
                 await message.answer(f'База обновлена. Добавлено {len(docs)} документов.')
         except Exception as ex:
             print(f'Ошибка:\n{ex}')
+
+
+@dp.message_handler(commands=['add'])
+async def admin_add(message: types.Message):
+    user_id = message.from_user.id
+    if str(user_id) in admin_tokens:
+        try:
+            arr = message.text.split()
+            if len(arr) < 2:
+                await message.answer(f'Вы забыли передать ссылку.')
+            else:
+                url = arr[1]
+                content = get_content(url)
+                if len(content) > 0:
+                    add_document(content, url)
+                    await message.answer(f'Вы добавили новый документ.')
+                else:
+                    await message.answer(f'Не удалось добавить документ.')
+        except Exception as ex:
+            print(f'Ошибка:\n{ex}')
+
+
+@dp.message_handler(commands=['utf'])
+async def decode_text(message: types.Message):
+    try:
+        arr = message.text.split()
+        if len(arr) < 2:
+            await message.answer(f'Вы забыли передать ссылку.')
+        else:
+            msg = parse_text(arr[1], 'utf-8')
+            await message.answer(f'```\n{msg}\n```', parse_mode=types.ParseMode.MARKDOWN)
+    except Exception as ex:
+        print(f'Ошибка:\n{ex}')
 
 
 @dp.message_handler()
